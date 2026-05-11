@@ -27,6 +27,7 @@ public interface IPropostaService
     Task<PropostaResponse> ResponderAsync(long propostaId, long usuarioId, ResponderPropostaRequest request, CancellationToken cancellationToken);
     Task<List<PropostaResponse>> ListarMinhasAsync(long usuarioId, CancellationToken cancellationToken);
     Task<PropostaResponse> EncerrarAsync(long propostaId, long usuarioId, CancellationToken cancellationToken);
+    Task<List<PropostaResponse>> ListarDaIdeiaAsync(long ideiaId, long donoId, CancellationToken cancellationToken); // ← NOVO
 }
 
 public interface INotificacaoService
@@ -421,6 +422,20 @@ public sealed class PropostaService : IPropostaService
         await _uow.SaveChangesAsync(cancellationToken);
         return Map(proposta);
     }
+
+    // ── NOVO: lista propostas recebidas em uma ideia do empreendedor ──────────
+    public async Task<List<PropostaResponse>> ListarDaIdeiaAsync(long ideiaId, long donoId, CancellationToken cancellationToken)
+    {
+        var ideia = await _ideias.GetByIdAsync(ideiaId, cancellationToken)
+            ?? throw new AppException("Ideia não encontrada.", 404);
+
+        if (ideia.UsuarioId != donoId)
+            throw new AppException("Sem permissão para ver as propostas desta ideia.", 403);
+
+        var propostas = await _propostas.ListByIdeiaAsync(ideiaId, cancellationToken);
+        return propostas.Select(Map).ToList();
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     private async Task<PropostaResponse> MapAsync(long prpId, CancellationToken cancellationToken)
     {

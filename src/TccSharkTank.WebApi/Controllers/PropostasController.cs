@@ -50,5 +50,16 @@ public sealed class PropostasController : ControllerBase
         var userId = _currentUser.UserId ?? throw new TccSharkTank.Application.Common.AppException("Não autenticado.", 401);
         return _propostas.EncerrarAsync(propostaId, userId, cancellationToken);
     }
+
+    [Authorize(Roles = "empreendedor")]
+[HttpGet("ideias/{ideiaId:long}/propostas")]
+public Task<List<PropostaResponse>> ListarDaIdeia(
+    [FromRoute] long ideiaId,
+    CancellationToken cancellationToken)
+{
+    var userId = _currentUser.UserId
+        ?? throw new TccSharkTank.Application.Common.AppException("Não autenticado.", 401);
+    return _propostas.ListarDaIdeiaAsync(ideiaId, userId, cancellationToken);
+}
 }
 

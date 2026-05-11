@@ -39,6 +39,7 @@ public interface IPropostaRepository
     Task<List<PrpProposta>> ListByUsuarioAsync(long usuarioId, CancellationToken cancellationToken);
     Task AddAsync(PrpProposta proposta, CancellationToken cancellationToken);
     void Update(PrpProposta proposta);
+    Task<List<PrpProposta>> ListByIdeiaAsync(long ideiaId, CancellationToken cancellationToken);
 }
 
 public interface INotificacaoRepository

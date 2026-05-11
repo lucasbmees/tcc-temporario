@@ -33,8 +33,14 @@ public sealed class NotificacoesController : ControllerBase
         var userId = _currentUser.UserId ?? throw new TccSharkTank.Application.Common.AppException("Não autenticado.", 401);
         return _notificacoes.MarcarLidaAsync(id, userId, cancellationToken);
     }
+
+    // ── NOVO: qualquer usuário autenticado pode disparar notificação para outro ──
+    [HttpPost("disparar")]
+    public Task<NotificacaoResponse> Disparar([FromBody] DispararNotificacaoRequest request, CancellationToken cancellationToken)
+        => _notificacoes.DispararAsync(request, cancellationToken);
 }
 
+// Admin controller permanece igual
 [ApiController]
 [Route("api/admin/notificacoes")]
 [Authorize(Roles = "adm")]
@@ -51,4 +57,3 @@ public sealed class AdminNotificacoesController : ControllerBase
     public Task<NotificacaoResponse> Disparar([FromBody] DispararNotificacaoRequest request, CancellationToken cancellationToken)
         => _notificacoes.DispararAsync(request, cancellationToken);
 }
-

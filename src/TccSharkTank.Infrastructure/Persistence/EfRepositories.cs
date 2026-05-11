@@ -158,6 +158,17 @@ public sealed class PropostaRepository : IPropostaRepository
             .ToListAsync(cancellationToken);
     }
 
+    // ← NOVO: lista propostas de uma ideia específica (para o empreendedor)
+    public Task<List<PrpProposta>> ListByIdeiaAsync(long ideiaId, CancellationToken cancellationToken)
+    {
+        return _db.PrpPropostas
+            .Include(p => p.Ideia)
+            .Include(p => p.Infos).ThenInclude(i => i.Aceite)
+            .Where(p => p.IdeiaId == ideiaId && p.Status)
+            .OrderByDescending(p => p.Id)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task AddAsync(PrpProposta proposta, CancellationToken cancellationToken) => _db.PrpPropostas.AddAsync(proposta, cancellationToken).AsTask();
 
     public void Update(PrpProposta proposta) => _db.PrpPropostas.Update(proposta);
