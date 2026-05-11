@@ -6,6 +6,7 @@ using TccSharkTank.Application.Abstractions.Security;
 using TccSharkTank.Infrastructure;
 using TccSharkTank.WebApi.Middleware;
 using TccSharkTank.WebApi.Security;
+// Adicione o namespace do seu DbContext se necessário (ex: using TccSharkTank.Infrastructure.Persistence;)
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,15 +66,35 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// ==========================================
+// BLOCO PARA FORÇAR CRIAÇÃO DAS TABELAS
+// ==========================================
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Substitua 'AppDbContext' pelo nome exato da sua classe de contexto se for diferente
+        var context = services.GetRequiredService<TccSharkTank.Infrastructure.Persistence.AppDbContext>();
+        context.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocorreu um erro ao criar as tabelas do banco de dados.");
+    }
+}
+// ==========================================
+
 // Pipeline de Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// CORREÇÃO: Swagger habilitado para todos os ambientes (necessário para o Azure Free F1)
+// Swagger habilitado para todos os ambientes
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "TccSharkTank API v1");
-    c.RoutePrefix = ""; // Faz com que o Swagger seja a página inicial ao acessar a URL do Azure
+    c.RoutePrefix = ""; 
 });
 
 app.UseAuthentication();
