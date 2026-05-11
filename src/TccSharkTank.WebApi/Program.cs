@@ -9,6 +9,7 @@ using TccSharkTank.WebApi.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configurações de Serviços
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -34,12 +35,13 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Injeção de Dependência da Infraestrutura e Segurança
 builder.Services.AddInfrastructure(builder.Configuration);
-
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
+// Configuração de Autenticação JWT
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var key = jwtSection["Key"] ?? "dev-secret-change-me-please-dev-secret-change-me-please";
 
@@ -63,17 +65,16 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Pipeline de Middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
+// CORREÇÃO: Swagger habilitado para todos os ambientes (necessário para o Azure Free F1)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TccSharkTank API v1");
-        c.RoutePrefix = "";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TccSharkTank API v1");
+    c.RoutePrefix = ""; // Faz com que o Swagger seja a página inicial ao acessar a URL do Azure
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
